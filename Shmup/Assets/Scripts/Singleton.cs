@@ -8,7 +8,7 @@ public class Singleton : MonoBehaviour
 
     public bool isUsingController = false; // Keyboard + mouse is default
 
-    private int frameRateLimit = 60;
+    public int frameRateLimit = 60;
 
 
     private void Awake()
