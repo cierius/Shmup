@@ -9,45 +9,59 @@ using UnityEngine.Tilemaps;
 
 public class AIManager : MonoBehaviour
 {
-    public enum NodeType
-    {
-        Idle,
-        Open,
-        Closed,
-        Start,
-        End,
-        Unwalkable
-    }
 
     [SerializeField] private Tilemap walkableMap;
     private BoundsInt mapBounds;
-    private TileBase[] tiles;
-    [SerializeField] private Tilemap unwalkableMap; // IDK if I need this
-
 
     private List<Node> nodes = new List<Node>();
-    //private List<Node> closedNodes = new List<Node>();
+
+    private List<Node> openNodes;
+    private List<Node> closedNodes;
 
     private List<EnemyAI> enemies = new List<EnemyAI>();
+    public Transform enemyTrans;
 
-    private GameObject player;
+    private Transform player;
+
 
     private void Awake()
     {
-        player = GameObject.FindGameObjectWithTag("Player");
+        player = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
         enemies = UpdateEnemyList();
         mapBounds = GetTileMapBounds();
-        print(mapBounds.size);
         GenerateNodes();
     }
 
+    private void Update()
+    {
+        FindPath(WorldPosToGrid(enemyTrans), WorldPosToGrid(player));
+    }
+
+    public List<Node> path = new List<Node>();
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.green;
+        Gizmos.color = Color.white;
         foreach(Node node in nodes)
         {
-            Gizmos.DrawCube(new Vector3(node.x - .5f, node.y - .5f, 9), new Vector3(1, 1, 1));
+            if(path.Contains(node))
+            {
+                Gizmos.color = Color.black;
+            }
+            else if(openNodes.Contains(node))
+            {
+                Gizmos.color = Color.cyan;
+            }
+            else if (closedNodes.Contains(node))
+            {
+                Gizmos.color = Color.red;
+            }
+            else
+            {
+                Gizmos.color = Color.white;
+            }
+            Gizmos.DrawCube(new Vector3(node.gridX -.5f, node.gridY - .5f, 9), new Vector3(.5f, .5f, .25f));
         }
+        
     }
 
     // Gets a list of all of the currently spawned enemies in the level and makes them children
@@ -65,6 +79,105 @@ public class AIManager : MonoBehaviour
         return enemyList;
     }
 
+
+    private void FindPath(Node start, Node target)
+    {
+        openNodes = new List<Node>();
+        closedNodes = new List<Node>();
+        openNodes.Add(start);
+
+
+        while(openNodes.Count > 0)
+        {
+            Node currentNode = openNodes[0];
+            for(int i = 1; i < openNodes.Count; i++)
+            {
+                if(openNodes[i].fCost < currentNode.fCost || openNodes[i].fCost == currentNode.fCost && openNodes[i].hCost < currentNode.hCost)
+                {
+                    currentNode = openNodes[i];
+                }
+            }
+
+            openNodes.Remove(currentNode);
+            closedNodes.Add(currentNode);
+
+            if(currentNode == target)
+            {
+                RetracePath(start, target);
+                return;
+            }
+
+            foreach (Node neighbor in FindNeighbors(currentNode))
+            {
+                if (closedNodes.Contains(neighbor) || neighbor == null)
+                {
+                    continue;
+                }
+
+                int newMovementCostToNeighbor = currentNode.gCost + NodeDistance(currentNode, neighbor);
+                if(newMovementCostToNeighbor < neighbor.gCost || !openNodes.Contains(neighbor))
+                {
+                    neighbor.gCost = newMovementCostToNeighbor;
+                    neighbor.hCost = NodeDistance(neighbor, target);
+                    neighbor.parentNode = currentNode;
+
+                    if(!openNodes.Contains(neighbor))
+                    {
+                        openNodes.Add(neighbor);
+                    }
+                }
+
+            }
+
+        }
+    }
+
+    private void RetracePath(Node start, Node target)
+    {
+        List<Node> _path = new List<Node>();
+        Node currentNode = target;
+
+        while(currentNode != start)
+        {
+            _path.Add(currentNode);
+            currentNode = currentNode.parentNode;
+        }
+
+        _path.Reverse();
+        path = _path;
+    }
+
+    private int NodeDistance(Node nodeA, Node nodeB)
+    {
+        int dstX = Mathf.Abs(nodeA.gridX - nodeB.gridX);
+        int dstY = Mathf.Abs(nodeA.gridY - nodeB.gridY);
+
+        if (dstX > dstY)
+        {
+            return 14*dstY + 10*(dstX - dstY);
+        }
+        return 14*dstX + 10*(dstY - dstX);
+    }
+
+    private List<Node> FindNeighbors(Node node)
+    {
+        List<Node> neighbors = new List<Node>();
+
+        for(int x = -1; x < 2; x++)
+        {
+            for(int y = -1; y < 2; y++)
+            {
+                if (x == 0 && y == 0)
+                    continue;
+
+                neighbors.Add(WorldPosToGrid(node.gridX + x, node.gridY + y));
+            }
+        }
+
+
+        return neighbors;
+    }
+
     private void GenerateNodes()
     {
         var offset = 1;
@@ -79,20 +192,45 @@ public class AIManager : MonoBehaviour
             {
                 if(walkableMap.GetTile(new Vector3Int(x - Mathf.Abs(mapBounds.position.x), y - Mathf.Abs(mapBounds.position.y), 0)) != null)
                 {
-                    nodes.Add(new Node(x - Mathf.Abs(mapBounds.position.x) + offset, y - Mathf.Abs(mapBounds.position.y) + offset, NodeType.Idle));
+                    nodes.Add(new Node(x - Mathf.Abs(mapBounds.position.x) + offset, y - Mathf.Abs(mapBounds.position.y) + offset));
                 }
             }
         }
 
+        print("Finished Generation --- Walkable area: " + nodes.Count);
+    }
+
+    // This function is very intensive. Need to be optimized for use with many units.
+    private Node WorldPosToGrid(float x, float y)
+    {
+        Node node = null;
+
         foreach(Node n in nodes)
         {
-            print(n.x + " " + n.y + " " + n.nodeType);
+            if(n.gridX == Mathf.RoundToInt(x) && n.gridY == Mathf.RoundToInt(y))
+            {
+                //print(n);
+                return n;
+            }
         }
 
-        //Trying to figure out how to find nodes
-        print(nodes.Contains(new Node(25 - Mathf.Abs(mapBounds.position.x), 5 - Mathf.Abs(mapBounds.position.y), NodeType.Idle))); 
+        return node;
+    }
 
-        print("Finished Generation --- Walkable area: " + nodes.Count);
+    private Node WorldPosToGrid(Transform trans)
+    {
+        Node node = null;
+
+        foreach (Node n in nodes)
+        {
+            if (n.gridX == Mathf.RoundToInt(trans.position.x + .5f) && n.gridY == Mathf.RoundToInt(trans.position.y + .5f))
+            {
+                //print(n);
+                return n;
+            }
+        }
+
+        return node;
     }
 
     private BoundsInt GetTileMapBounds()
@@ -100,7 +238,6 @@ public class AIManager : MonoBehaviour
         walkableMap.CompressBounds(); // Makes sure the bounds aren't bigger than the map itself
 
         BoundsInt bounds = walkableMap.cellBounds;
-        tiles = walkableMap.GetTilesBlock(bounds);
         print(bounds);
 
         return bounds;
@@ -109,21 +246,22 @@ public class AIManager : MonoBehaviour
 
 public class Node
 {
-    public AIManager.NodeType nodeType; // Open, Closed, Start, End
+    public int gridX; // Grid coords
+    public int gridY;
 
-    public int x; // Grid coords
-    public int y;
-
-    public int g; // Distance from start
-    public int h; // Distance from finish
-    public int f; // G + H
+    public int gCost; // Distance from start
+    public int hCost; // Distance from finish
 
     public Node parentNode; // Node this one came from
 
-    public Node(int x, int y, AIManager.NodeType nodeType)
+    public Node(int _x, int _y)
     {
-        this.x = x;
-        this.y = y;
-        this.nodeType = nodeType;
+        this.gridX = _x;
+        this.gridY = _y;
+    }
+
+    public int fCost
+    {
+        get { return gCost + hCost; }
     }
 }
