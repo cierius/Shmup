@@ -13,7 +13,7 @@ public class Bullet : MonoBehaviour
         transform.localScale = new Vector3(.25f, .25f, 1f);
     }
 
-    private void OnCollisionEnter2D(Collision2D coll)
+    private void OnTriggerEnter2D(Collider2D coll)
     {
         if (coll.gameObject.tag == "Unwalkable")
         {

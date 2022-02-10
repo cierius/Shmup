@@ -12,17 +12,17 @@ using UnityEngine.Tilemaps;
 
 public class AIManager : MonoBehaviour
 {
+    [SerializeField] private bool showGrid = false;
 
     [SerializeField] private Tilemap walkableMap;
     private BoundsInt mapBounds;
 
     private List<Node> nodes = new List<Node>();
 
-    private List<Node> openNodes;
-    private List<Node> closedNodes;
+    private List<Node> openNodes = new List<Node>();
+    private List<Node> closedNodes = new List<Node>();
 
     [SerializeField] private List<EnemyAI> enemies = new List<EnemyAI>();
-    public Transform enemyTrans;
     private List<Vector3> pathVecs = new List<Vector3>();
 
     private Transform playerTrans;
@@ -38,53 +38,28 @@ public class AIManager : MonoBehaviour
 
     private void Update()
     {
-        foreach (EnemyAI e in enemies)
+        for(int i = 0; i < enemies.Count; i++)
         {
-            if (e.state == EnemyAI.AIState.Searching)
+            if(enemies[i].state == EnemyAI.AIState.Searching)
             {
-                print("searching for path");
-                e.path = FindPath(e.transform, playerTrans);
+                if(!enemies[i].hasPath)
+                {
+                    enemies[i].SetPath(FindPath(enemies[i].GetTransform(), playerTrans));
+                }
             }
         }
     }
 
-    private void LateUpdate()
-    {
-        foreach (EnemyAI e in enemies)
-        {
-            if (e.state == EnemyAI.AIState.Moving)
-            {
-                print("searching for path while moving");
-                e.path.Clear();
-                e.currNode = 0;
-                e.path = FindPath(e.transform, playerTrans);
-            }
-        }
-    }
-
-    public List<Node> path = new List<Node>();
+    private List<Node> path = new List<Node>(); // For showing the grid when debugging
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.white;
-        foreach(Node node in nodes)
+        if (showGrid) 
         {
-            if(path.Contains(node))
+            Gizmos.color = Color.white;
+            foreach (Node node in nodes)
             {
-                Gizmos.color = Color.black;
+                Gizmos.DrawCube(new Vector3(node.gridX - .5f, node.gridY - .5f, 9), new Vector3(.5f, .5f, .25f));
             }
-            else if(openNodes.Contains(node))
-            {
-                Gizmos.color = Color.cyan;
-            }
-            else if (closedNodes.Contains(node))
-            {
-                Gizmos.color = Color.red;
-            }
-            else
-            {
-                Gizmos.color = Color.white;
-            }
-            Gizmos.DrawCube(new Vector3(node.gridX -.5f, node.gridY - .5f, 9), new Vector3(.5f, .5f, .25f));
         }
     }
 
@@ -97,10 +72,17 @@ public class AIManager : MonoBehaviour
         {
             enemyList.Add(e.GetComponent<EnemyAI>());
             e.transform.parent = this.transform;
-            //print(e.name);
         }
 
+        enemyList.Reverse();
+
         return enemyList;
+    }
+
+
+    public void RefreshEnemyList()
+    {
+        enemies = UpdateEnemyList();
     }
 
 
@@ -109,8 +91,8 @@ public class AIManager : MonoBehaviour
         Node startNode = WorldPosToGrid(start);
         Node targetNode = WorldPosToGrid(target);
         
-        openNodes = new List<Node>(); // Nodes that may need checked
-        closedNodes = new List<Node>(); // Nodes that have already been checked
+        openNodes.Clear(); // Nodes that may need checked
+        closedNodes.Clear(); // Nodes that have already been checked
         openNodes.Add(startNode);
 
         // While there are still nodes that need to be checked
@@ -177,7 +159,7 @@ public class AIManager : MonoBehaviour
         //path = _path;
         foreach(Node n in _path)
         {
-            pathVecs.Add(new Vector3(n.gridX + .5f, n.gridY + .5f, 0));
+            pathVecs.Add(new Vector3(n.gridX - .5f, n.gridY - .5f, 0));
         }
     }
 
@@ -204,7 +186,12 @@ public class AIManager : MonoBehaviour
                 if (x == 0 && y == 0)
                     continue;
 
-                neighbors.Add(WorldPosToGrid(node.gridX + x, node.gridY + y));
+                var nodeToAdd = WorldPosToGrid(node.gridX + x, node.gridY + y);
+
+                if (nodeToAdd != null)
+                    neighbors.Add(nodeToAdd);
+                else
+                    continue;
             }
         }
 
@@ -237,34 +224,34 @@ public class AIManager : MonoBehaviour
     // This function is very intensive. Need to be optimized for use with many units.
     private Node WorldPosToGrid(float x, float y)
     {
-        Node node = null;
-
         foreach(Node n in nodes)
         {
             if(n.gridX == Mathf.RoundToInt(x) && n.gridY == Mathf.RoundToInt(y))
             {
-                //print(n);
-                return n;
+                if (n != null)
+                    return n;
+                else
+                    continue;
             }
         }
 
-        return node;
+        return null;
     }
 
     private Node WorldPosToGrid(Transform trans)
     {
-        Node node = null;
-
         foreach (Node n in nodes)
         {
-            if (n.gridX == Mathf.RoundToInt(trans.position.x + .5f) && n.gridY == Mathf.RoundToInt(trans.position.y + .5f))
+            if (n.gridX == Mathf.RoundToInt(trans.position.x) && n.gridY == Mathf.RoundToInt(trans.position.y))
             {
-                //print(n);
-                return n;
+                if (n != null)
+                    return n;
+                else
+                    continue;
             }
         }
 
-        return node;
+        return null;
     }
 
     private BoundsInt GetTileMapBounds()

@@ -19,7 +19,9 @@ public class EnemyAI : MonoBehaviour
     public int health = 100;
 
     public List<Vector3> path = new List<Vector3>();
-    [SerializeField] public int currNode = 0;
+    private int currNode = 0;
+    private float nodeTimeOut = 2.0f; // Time until AI re-pathfinds; may be stuck. THIS IS A QUICK FIX.
+    private float nodeTimer = 0;
 
     private int distToPlayer;
     [SerializeField] private int maxRangeSearch = 5; // Default is 10
@@ -27,7 +29,7 @@ public class EnemyAI : MonoBehaviour
     private int rangeToAttack;
 
     private bool inRange = false;
-    private bool hasPath = false;
+    public bool hasPath = false;
 
     private Transform playerTrans;
     private Transform trans;
@@ -39,19 +41,37 @@ public class EnemyAI : MonoBehaviour
         playerTrans = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
         trans = GetComponent<Transform>();
         rb = GetComponent<Rigidbody2D>();
+        Physics2D.IgnoreLayerCollision(6, 6, true); //Enemies will ignore other enemies collision - Kinda looks weird but works for now
+    }
+
+
+    private void OnDestroy()
+    {
+        trans.parent.GetComponent<AIManager>().RefreshEnemyList();
+    }
+
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = new Color(0, 0, 0, .5f);
+        if (path.Count > 0)
+        {
+            foreach(Vector3 node in path)
+            {
+                Gizmos.DrawCube(new Vector3(node.x, node.y, 0), new Vector3(.25f, .25f, .5f));
+            }
+        }
     }
 
 
     void FixedUpdate()
     {
         // 4 States for AI - Idle, Searching for path, Moving, Attacking
-        // I want the SearchForPlayer to be put into a job system since many enemies will be pathfinding async 
+        // I want the pathfinding to be put into a job system since many enemies will be pathfinding async 
         if (health > 0)
         {
             if(state == AIState.Idle)
             {
-                rb.velocity = new Vector2(0, 0);
-
                 if(CheckPlayerDistance())
                 {
                     state = AIState.Searching;
@@ -61,7 +81,6 @@ public class EnemyAI : MonoBehaviour
             {
                 if(path.Count > 1)
                 {
-                    hasPath = true;
                     currNode = 0;
                     state = AIState.Moving;
                 }
@@ -87,6 +106,7 @@ public class EnemyAI : MonoBehaviour
             }
         }
 
+        if(rb.velocity != Vector2.zero) rb.velocity = Vector2.zero;
     }
 
     private void MoveTowardPlayer()
@@ -99,27 +119,36 @@ public class EnemyAI : MonoBehaviour
         }
         else if(hasPath)
         {
-            print("Enemy has path and is moving");
-            
+            nodeTimer += Time.deltaTime;
+
             float dist = Mathf.Abs(Vector3.Distance(trans.position, path[currNode]));
             if (dist <= .5f)
             {
                 if(path.Count - 1 > currNode)
                 {
                     currNode++;
+                    nodeTimer = 0;
                 }
                 else if(currNode == path.Count - 1) // Reached destination
                 {
                     path.Clear();
                     hasPath = false;
                     currNode = 0;
-                    rb.velocity = new Vector3(0, 0, 0);
                     state = AIState.Idle;
                 }
             }
             else if(path.Count > 0)
             {
-                rb.velocity = Vector3.Normalize(new Vector2(path[currNode].x - trans.position.x, path[currNode].y - trans.position.y)) * SPEED * 10f * Time.deltaTime;
+                if(nodeTimer >= nodeTimeOut)
+                {
+                    path.Clear();
+                    hasPath = false;
+                    currNode = 0;
+                    state = AIState.Idle;
+                    nodeTimer = 0;
+                }
+                else
+                    trans.position = Vector3.MoveTowards(trans.position, path[currNode], SPEED/10f * Time.deltaTime);
             }
         }
     }
@@ -139,5 +168,18 @@ public class EnemyAI : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+
+    public void SetPath(List<Vector3> pathToSet)
+    {
+        path.AddRange(pathToSet);
+        hasPath = true;
+    }
+
+
+    public Transform GetTransform()
+    {
+        return trans;
     }
 }
