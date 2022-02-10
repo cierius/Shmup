@@ -4,8 +4,11 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 
-// This script will manage all of the enemies AI.
-// AI will not compute its own pathfinding, this is for us to save valuable performance.
+/* 
+ * This script will manage all of the enemy AI.
+ * AI will not compute its own pathfinding, this is to save valuable performance.
+ * Jobs will be queued to handle each enemies pathfinding once the enemy is within a specified range.
+*/
 
 public class AIManager : MonoBehaviour
 {
@@ -18,15 +21,16 @@ public class AIManager : MonoBehaviour
     private List<Node> openNodes;
     private List<Node> closedNodes;
 
-    private List<EnemyAI> enemies = new List<EnemyAI>();
+    [SerializeField] private List<EnemyAI> enemies = new List<EnemyAI>();
     public Transform enemyTrans;
+    private List<Vector3> pathVecs = new List<Vector3>();
 
-    private Transform player;
+    private Transform playerTrans;
 
 
     private void Awake()
     {
-        player = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        playerTrans = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
         enemies = UpdateEnemyList();
         mapBounds = GetTileMapBounds();
         GenerateNodes();
@@ -34,7 +38,28 @@ public class AIManager : MonoBehaviour
 
     private void Update()
     {
-        FindPath(WorldPosToGrid(enemyTrans), WorldPosToGrid(player));
+        foreach (EnemyAI e in enemies)
+        {
+            if (e.state == EnemyAI.AIState.Searching)
+            {
+                print("searching for path");
+                e.path = FindPath(e.transform, playerTrans);
+            }
+        }
+    }
+
+    private void LateUpdate()
+    {
+        foreach (EnemyAI e in enemies)
+        {
+            if (e.state == EnemyAI.AIState.Moving)
+            {
+                print("searching for path while moving");
+                e.path.Clear();
+                e.currNode = 0;
+                e.path = FindPath(e.transform, playerTrans);
+            }
+        }
     }
 
     public List<Node> path = new List<Node>();
@@ -61,7 +86,6 @@ public class AIManager : MonoBehaviour
             }
             Gizmos.DrawCube(new Vector3(node.gridX -.5f, node.gridY - .5f, 9), new Vector3(.5f, .5f, .25f));
         }
-        
     }
 
     // Gets a list of all of the currently spawned enemies in the level and makes them children
@@ -71,7 +95,7 @@ public class AIManager : MonoBehaviour
         
         foreach (GameObject e in GameObject.FindGameObjectsWithTag("Enemy"))
         {
-            enemies.Add(e.GetComponent<EnemyAI>());
+            enemyList.Add(e.GetComponent<EnemyAI>());
             e.transform.parent = this.transform;
             //print(e.name);
         }
@@ -80,18 +104,22 @@ public class AIManager : MonoBehaviour
     }
 
 
-    private void FindPath(Node start, Node target)
+    private List<Vector3> FindPath(Transform start, Transform target)
     {
-        openNodes = new List<Node>();
-        closedNodes = new List<Node>();
-        openNodes.Add(start);
+        Node startNode = WorldPosToGrid(start);
+        Node targetNode = WorldPosToGrid(target);
+        
+        openNodes = new List<Node>(); // Nodes that may need checked
+        closedNodes = new List<Node>(); // Nodes that have already been checked
+        openNodes.Add(startNode);
 
-
+        // While there are still nodes that need to be checked
         while(openNodes.Count > 0)
         {
             Node currentNode = openNodes[0];
-            for(int i = 1; i < openNodes.Count; i++)
+            for(int i = 1; i < openNodes.Count; i++) // index starts at 1 since we already know the first node is the start
             {
+                // If the total cost is less or the heuritical distance is shorter then we check that node
                 if(openNodes[i].fCost < currentNode.fCost || openNodes[i].fCost == currentNode.fCost && openNodes[i].hCost < currentNode.hCost)
                 {
                     currentNode = openNodes[i];
@@ -101,10 +129,10 @@ public class AIManager : MonoBehaviour
             openNodes.Remove(currentNode);
             closedNodes.Add(currentNode);
 
-            if(currentNode == target)
+            if(currentNode == targetNode)
             {
-                RetracePath(start, target);
-                return;
+                RetracePath(startNode, targetNode);
+                return pathVecs;
             }
 
             foreach (Node neighbor in FindNeighbors(currentNode))
@@ -115,25 +143,27 @@ public class AIManager : MonoBehaviour
                 }
 
                 int newMovementCostToNeighbor = currentNode.gCost + NodeDistance(currentNode, neighbor);
-                if(newMovementCostToNeighbor < neighbor.gCost || !openNodes.Contains(neighbor))
+                if (newMovementCostToNeighbor < neighbor.gCost || !openNodes.Contains(neighbor))
                 {
                     neighbor.gCost = newMovementCostToNeighbor;
-                    neighbor.hCost = NodeDistance(neighbor, target);
+                    neighbor.hCost = NodeDistance(neighbor, targetNode);
                     neighbor.parentNode = currentNode;
 
-                    if(!openNodes.Contains(neighbor))
+                    if (!openNodes.Contains(neighbor))
                     {
                         openNodes.Add(neighbor);
                     }
                 }
-
             }
-
         }
+
+        return null;
     }
 
     private void RetracePath(Node start, Node target)
     {
+        pathVecs.Clear();
+
         List<Node> _path = new List<Node>();
         Node currentNode = target;
 
@@ -144,7 +174,11 @@ public class AIManager : MonoBehaviour
         }
 
         _path.Reverse();
-        path = _path;
+        //path = _path;
+        foreach(Node n in _path)
+        {
+            pathVecs.Add(new Vector3(n.gridX + .5f, n.gridY + .5f, 0));
+        }
     }
 
     private int NodeDistance(Node nodeA, Node nodeB)

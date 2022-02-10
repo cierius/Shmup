@@ -1,0 +1,29 @@
+[33mcommit 141cae2d72b8923575eb61a341e84e8b5d108fef[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Kanin (desktop) <kanin.mann00@gmail.com>
+Date:   Sun Feb 6 12:10:19 2022 -0500
+
+    Implemented a* pathfinding. Needs optimized
+
+[33mcommit 1d883d5937cbc29e397e0ab8549b4e8a05db343c[m
+Author: Kanin (desktop) <kanin.mann00@gmail.com>
+Date:   Sun Feb 6 09:07:26 2022 -0500
+
+    Added diff map tiles. Started work on a* pathfinding
+
+[33mcommit 4f4f2f8be19de45d6329135ffdcfd1abbbda237e[m
+Author: Kanin (desktop) <kanin.mann00@gmail.com>
+Date:   Thu Feb 3 16:44:27 2022 -0500
+
+    Added laser for controller aiming, also a builds folder
+
+[33mcommit a611c1106b1c34c6b259810ceab5f0e950317f9a[m
+Author: Kanin (desktop) <kanin.mann00@gmail.com>
+Date:   Thu Feb 3 14:41:48 2022 -0500
+
+    Progress on character controller
+
+[33mcommit d159f2a87b744d083745e38c8f58749092e08828[m
+Author: Kanin (desktop) <kanin.mann00@gmail.com>
+Date:   Sat Jan 29 14:07:18 2022 -0500
+
+    First commit with unity project and README file
