@@ -8,6 +8,16 @@ public class CharController : MonoBehaviour
     
     private Stats stats;
 
+    private Vector2 lastMoveDir = Vector2.zero;
+    private bool isRolling = false;
+    private float rollTime;
+    private float maxRollTime = .1f;
+    private float rollAmount = 10f;
+    private bool rollOnCooldown = false;
+    private float rollCooldown = 3f; // Time in seconds
+    private float rollCooldownTimer;
+
+    // Shooting variables
     private bool isFiring = false;
     private Vector2 fireDir = Vector2.up;
     private Vector2 lastFireDir;
@@ -55,6 +65,16 @@ public class CharController : MonoBehaviour
 
     private void Update()
     {
+        if(rollOnCooldown)
+        {
+            rollCooldownTimer += Time.deltaTime;
+            if(rollCooldownTimer >= rollCooldown)
+            {
+                rollOnCooldown = false;
+                rollCooldownTimer = 0f;
+            }
+        }
+
         if(Keyboard.current.f1Key.wasPressedThisFrame) // Current key to switch between keyboard and controller input
         {
             Singleton.Instance.SwitchControlScheme();
@@ -108,9 +128,18 @@ public class CharController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(stats.isMoveable)
+        if(stats.isMoveable && !isRolling)
         {
             Movement();
+        }
+        else if(isRolling)
+        {
+            rollTime += Time.deltaTime;
+            if(rollTime >= maxRollTime)
+            {
+                isRolling = false;
+                rollTime = 0;
+            }
         }
     }
 
@@ -130,7 +159,7 @@ public class CharController : MonoBehaviour
 
     private void Fire(Vector2 dir)
     {
-        if(timeSinceLastFire >= fireRate)
+        if(timeSinceLastFire >= fireRate && !isRolling)
         {
             var bulletInstance = Instantiate(bulletPrefab, trans);
             bulletInstance.GetComponent<Rigidbody2D>().AddRelativeForce(dir * 10f, ForceMode2D.Impulse);
@@ -142,29 +171,32 @@ public class CharController : MonoBehaviour
     public void Movement()
     { 
         Vector2 inputVector = playerInputActions.Player.Movement.ReadValue<Vector2>();
-        rb.velocity = new Vector2(inputVector.x, inputVector.y) * (stats.speedBase + stats.speedAdditive) * 10f * Time.deltaTime;
+        lastMoveDir = inputVector;
+        if(isFiring) // Move at half speed when shooting
+        {
+            rb.velocity = new Vector2(inputVector.x, inputVector.y) * (stats.speedBase + stats.speedAdditive) * 5f * Time.deltaTime;
+        }
+        else
+            rb.velocity = new Vector2(inputVector.x, inputVector.y) * (stats.speedBase + stats.speedAdditive) * 10f * Time.deltaTime;
     }
 
 
-    public void OnFire(InputAction.CallbackContext context) // Fire input for controller
+    public void OnFire(InputAction.CallbackContext context) // Fire input for controller, mouse input not used by PlayerInput Component
     {
-        if (Singleton.Instance.isUsingController)
+        if (context.started == true) // on button down
         {
-            if (context.started == true) // on button down
-            {
-                isFiring = true;
-                print("Start Firing");
-            }
-            else if (context.canceled == true) // on button release
-            {
-                isFiring = false;
+            isFiring = true;
+            print("Start Firing");
+        }
+        else if (context.canceled == true) // on button release
+        {
+            isFiring = false;
 
-                if (playerInputActions.Player.FireDir.ReadValue<Vector2>() != Vector2.zero) // Save the last dir if not zero
-                {
-                    lastFireDir = playerInputActions.Player.FireDir.ReadValue<Vector2>();
-                }
-                print("Stop Firing");
+            if (playerInputActions.Player.FireDir.ReadValue<Vector2>() != Vector2.zero) // Save the last dir if not zero
+            {
+                lastFireDir = playerInputActions.Player.FireDir.ReadValue<Vector2>();
             }
+            print("Stop Firing");
         }
     }
 
@@ -174,6 +206,16 @@ public class CharController : MonoBehaviour
         print(context);
     }
 
+
+    public void Roll(InputAction.CallbackContext context)
+    {
+        if(context.started == true && !isRolling && !rollOnCooldown)
+        {
+            isRolling = true;
+            rollOnCooldown = true;
+            rb.AddForce(lastMoveDir * rollAmount, ForceMode2D.Impulse);
+        }
+    }
 }
 
 
@@ -181,8 +223,8 @@ public class CharController : MonoBehaviour
 public class Stats
 {
     public bool isMoveable = true;
-    public float speedBase = 10.0f;
-    public float speedAdditive = 0.0f; // Used for speed boosts / bonus speed upgrades
+    public float speedBase = 15f;
+    public float speedAdditive = 0f; // Used for speed boosts / bonus speed upgrades
 
     public int healthBase = 100;
     public int healthAdditive = 0;
@@ -198,7 +240,8 @@ public class Weapon
 {
     enum weaponType
     {
-        Rifle
+        Rifle,
+        Launcher,
 
     }
 }

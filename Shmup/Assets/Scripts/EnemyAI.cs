@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class EnemyAI : MonoBehaviour
 {
+    public bool showPath = false;
+    public bool showAttackRadius = false;
+
     public enum AIState
     {
         Idle,
@@ -14,7 +17,7 @@ public class EnemyAI : MonoBehaviour
     }
     public AIState state; // Default state is Idle
 
-    private const float SPEED = 10f;
+    [SerializeField] private float SPEED = 10f;
     
     public bool invuln = false;
     public int health = 100;
@@ -56,16 +59,19 @@ public class EnemyAI : MonoBehaviour
     private void OnDrawGizmos()
     {
         Gizmos.color = new Color(0, 0, 0, .5f);
-        if (path.Count > 0)
+        if (path.Count > 0 && showPath)
         {
-            foreach(Vector3 node in path)
+            foreach (Vector3 node in path)
             {
                 Gizmos.DrawCube(new Vector3(node.x, node.y, 0), new Vector3(.25f, .25f, .5f));
             }
         }
 
-        Gizmos.color = new Color(0, 0, 1, .5f);
-        Gizmos.DrawWireSphere(transform.position, maxRangeSearch);
+        if (showAttackRadius)
+        {
+            Gizmos.color = new Color(0, 0, 1, .5f);
+            Gizmos.DrawWireSphere(transform.position, maxRangeSearch);
+        }
     }
 
 

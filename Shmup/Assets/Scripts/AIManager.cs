@@ -187,7 +187,6 @@ public class AIManager : MonoBehaviour
 
     private List<Node> FindNeighbors(Node node)
     {
-        print(node);
         List<Node> neighbors = new List<Node>();
         if (node != null)
         {

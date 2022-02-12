@@ -55,7 +55,7 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Reload"",
+                    ""name"": ""Roll"",
                     ""type"": ""Button"",
                     ""id"": ""4f8c7412-6d15-4547-ac59-eadbf727c33e"",
                     ""expectedControlType"": ""Button"",
@@ -67,15 +67,6 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                     ""name"": ""Action"",
                     ""type"": ""Button"",
                     ""id"": ""38d7fdc8-9fb6-41e5-9906-46727016a184"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Execute"",
-                    ""type"": ""Button"",
-                    ""id"": ""d527df31-262b-4b51-b144-e466569c6b92"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -97,22 +88,33 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""51944409-9b03-407a-9971-1e1548945528"",
-                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Reload"",
+                    ""action"": ""Roll"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
                     ""id"": ""6b75fe93-cadb-4b55-86e7-15ff5bab3a6a"",
-                    ""path"": ""<Keyboard>/r"",
+                    ""path"": ""<Keyboard>/space"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": ""Keyboard"",
-                    ""action"": ""Reload"",
+                    ""action"": ""Roll"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""78daecea-fe87-4d13-9ddb-a61412b62fa0"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""Roll"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -135,28 +137,6 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard"",
                     ""action"": ""Action"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""14ad13e5-0926-454f-b9a9-19bbf04f3706"",
-                    ""path"": ""<Gamepad>/buttonEast"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Execute"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""54612dbd-91b9-450b-bda0-ff27241b111c"",
-                    ""path"": ""<Keyboard>/e"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Execute"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -270,9 +250,8 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
         m_Player_Movement = m_Player.FindAction("Movement", throwIfNotFound: true);
         m_Player_FireDir = m_Player.FindAction("FireDir", throwIfNotFound: true);
         m_Player_Fire = m_Player.FindAction("Fire", throwIfNotFound: true);
-        m_Player_Reload = m_Player.FindAction("Reload", throwIfNotFound: true);
+        m_Player_Roll = m_Player.FindAction("Roll", throwIfNotFound: true);
         m_Player_Action = m_Player.FindAction("Action", throwIfNotFound: true);
-        m_Player_Execute = m_Player.FindAction("Execute", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -335,9 +314,8 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Movement;
     private readonly InputAction m_Player_FireDir;
     private readonly InputAction m_Player_Fire;
-    private readonly InputAction m_Player_Reload;
+    private readonly InputAction m_Player_Roll;
     private readonly InputAction m_Player_Action;
-    private readonly InputAction m_Player_Execute;
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -345,9 +323,8 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
         public InputAction @Movement => m_Wrapper.m_Player_Movement;
         public InputAction @FireDir => m_Wrapper.m_Player_FireDir;
         public InputAction @Fire => m_Wrapper.m_Player_Fire;
-        public InputAction @Reload => m_Wrapper.m_Player_Reload;
+        public InputAction @Roll => m_Wrapper.m_Player_Roll;
         public InputAction @Action => m_Wrapper.m_Player_Action;
-        public InputAction @Execute => m_Wrapper.m_Player_Execute;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -366,15 +343,12 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                 @Fire.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnFire;
                 @Fire.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnFire;
                 @Fire.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnFire;
-                @Reload.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
-                @Reload.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
-                @Reload.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnReload;
+                @Roll.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnRoll;
+                @Roll.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnRoll;
+                @Roll.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnRoll;
                 @Action.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnAction;
                 @Action.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnAction;
                 @Action.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnAction;
-                @Execute.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnExecute;
-                @Execute.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnExecute;
-                @Execute.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnExecute;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -388,15 +362,12 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                 @Fire.started += instance.OnFire;
                 @Fire.performed += instance.OnFire;
                 @Fire.canceled += instance.OnFire;
-                @Reload.started += instance.OnReload;
-                @Reload.performed += instance.OnReload;
-                @Reload.canceled += instance.OnReload;
+                @Roll.started += instance.OnRoll;
+                @Roll.performed += instance.OnRoll;
+                @Roll.canceled += instance.OnRoll;
                 @Action.started += instance.OnAction;
                 @Action.performed += instance.OnAction;
                 @Action.canceled += instance.OnAction;
-                @Execute.started += instance.OnExecute;
-                @Execute.performed += instance.OnExecute;
-                @Execute.canceled += instance.OnExecute;
             }
         }
     }
@@ -424,8 +395,7 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
         void OnMovement(InputAction.CallbackContext context);
         void OnFireDir(InputAction.CallbackContext context);
         void OnFire(InputAction.CallbackContext context);
-        void OnReload(InputAction.CallbackContext context);
+        void OnRoll(InputAction.CallbackContext context);
         void OnAction(InputAction.CallbackContext context);
-        void OnExecute(InputAction.CallbackContext context);
     }
 }

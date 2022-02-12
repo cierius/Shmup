@@ -33,7 +33,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Reload",
+                    "name": "Roll",
                     "type": "Button",
                     "id": "4f8c7412-6d15-4547-ac59-eadbf727c33e",
                     "expectedControlType": "Button",
@@ -45,15 +45,6 @@
                     "name": "Action",
                     "type": "Button",
                     "id": "38d7fdc8-9fb6-41e5-9906-46727016a184",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Execute",
-                    "type": "Button",
-                    "id": "d527df31-262b-4b51-b144-e466569c6b92",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -75,22 +66,33 @@
                 {
                     "name": "",
                     "id": "51944409-9b03-407a-9971-1e1548945528",
-                    "path": "<Gamepad>/buttonNorth",
+                    "path": "<Gamepad>/buttonSouth",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Reload",
+                    "action": "Roll",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
                     "id": "6b75fe93-cadb-4b55-86e7-15ff5bab3a6a",
-                    "path": "<Keyboard>/r",
+                    "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": "Keyboard",
-                    "action": "Reload",
+                    "action": "Roll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "78daecea-fe87-4d13-9ddb-a61412b62fa0",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "Roll",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -113,28 +115,6 @@
                     "processors": "",
                     "groups": "Keyboard",
                     "action": "Action",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "14ad13e5-0926-454f-b9a9-19bbf04f3706",
-                    "path": "<Gamepad>/buttonEast",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Execute",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "54612dbd-91b9-450b-bda0-ff27241b111c",
-                    "path": "<Keyboard>/e",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Execute",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
