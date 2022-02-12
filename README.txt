@@ -1,31 +1,53 @@
-Febuary - March Project Shoot 'em up AKA Shmup
-Title: DBD
+Febuary - March: Project Shump (DEMO)
+Title: TBD
 
 Controls:
 ----------
-WASD / Left joystick or D-pad - Movement
+WASD / Left joystick - Movement
 LMB / Right trigger or Right bumper - Shoot
-R - Reload
-Tab - Upgrade window
-Escape - Pause menu
+Shift or Space / South Button - Roll
+Escape / Start button - Pause menu
 
 
 Key Gameplay:
 -------------
 - Twin-stick shooter or Mouse and Keyboard
-- Fast paced action, think bullet hell
-- Player can purchase upgrades + weapons each level to diversify gameplay and play style
+- Fast paced action, think bullet hell with a Doom-like feel
+- Player will receieve upgrades randomly throughout the game for diverse play
 
 
-2 Game Modes:
--------------
-Story mode - planning on having 5 levels
-	Story mode will have differing objectives such as:
-		1. Enemy elimination
-		2. Neutralize area and defend
-		3. Destroy specified structure(s)
-		4. Defend specified ally structures
-		Mixtures of the above as well to create diverse play 
+Main Game (for demo):
+---------------
+- 1 World with 3 Levels and a Final Boss
+*If dev continues there will be 3 worlds that have random generation
+*Levels will have random objectives and randomized layouts
 
-Endless mode - Randomly generated map with buildings
-	Enemies spawn in waves at random around the map getting harder / more numerous as time progresses
+- Random Upgrade(s) at the end of the 3 levels
+
+
+--- For MVP purposes the demo will have handmade levels ---
+
+Level 1:
+--------
+- Explore the level
+- Eliminate all enemies (set amount of enemies on this level)
+- Find the shuttle to the next level
+
+
+Level 2:
+--------
+- Find the broken shuttle
+- Bring 5 parts back to the shuttle (these are scattered around the map, player can hold more than 1 part)
+- Defend the shuttle while it repairs itself for 1 minute
+
+
+Level 3:
+--------
+- Destroy 3 enemy spawners (coninually spawns)
+- Find shuttle to go to final boss
+
+
+Final Boss:
+-----------
+
+

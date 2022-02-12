@@ -8,6 +8,7 @@ public class EnemyAI : MonoBehaviour
     {
         Idle,
         Moving,
+        MovingAndSearching,
         Attacking,
         Searching
     }
@@ -27,6 +28,7 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private int maxRangeSearch = 5; // Default is 10
     private int minRangeSearch = 2;
     private int rangeToAttack;
+    private Vector2 playerOrigin = Vector2.zero;
 
     private bool inRange = false;
     public bool hasPath = false;
@@ -61,6 +63,9 @@ public class EnemyAI : MonoBehaviour
                 Gizmos.DrawCube(new Vector3(node.x, node.y, 0), new Vector3(.25f, .25f, .5f));
             }
         }
+
+        Gizmos.color = new Color(0, 0, 1, .5f);
+        Gizmos.DrawWireSphere(transform.position, maxRangeSearch);
     }
 
 
@@ -89,9 +94,13 @@ public class EnemyAI : MonoBehaviour
                     state = AIState.Idle;
                 }
             }
-            else if(state == AIState.Moving)
+            else if(state == AIState.Moving || state == AIState.MovingAndSearching && !hasPath)
             {
                 MoveTowardPlayer();
+            }
+            else if(state == AIState.MovingAndSearching && hasPath)
+            {
+                state = AIState.Moving;
             }
             else if(state == AIState.Attacking)
             {
@@ -139,7 +148,7 @@ public class EnemyAI : MonoBehaviour
             }
             else if(path.Count > 0)
             {
-                if(nodeTimer >= nodeTimeOut)
+                if (nodeTimer >= nodeTimeOut)
                 {
                     path.Clear();
                     hasPath = false;
@@ -148,7 +157,20 @@ public class EnemyAI : MonoBehaviour
                     nodeTimer = 0;
                 }
                 else
-                    trans.position = Vector3.MoveTowards(trans.position, path[currNode], SPEED/10f * Time.deltaTime);
+                    trans.position = Vector3.MoveTowards(trans.position, path[currNode], SPEED / 10f * Time.deltaTime);
+            }
+
+
+            if (playerOrigin == Vector2.zero) // If playerOrigin has been set yet
+            {
+                playerOrigin = playerTrans.position;
+            }
+            else if (PlayerDeltaOriginalPosition(playerOrigin) > 3) // Checks to see if the player has moved 3 tiles since the last path has been generated
+            {
+                state = AIState.MovingAndSearching;
+                currNode = 0;
+                hasPath = false;
+                playerOrigin = Vector2.zero;
             }
         }
     }
@@ -156,6 +178,14 @@ public class EnemyAI : MonoBehaviour
     private void Attack()
     {
 
+    }
+
+
+    private int PlayerDeltaOriginalPosition(Vector2 origin)
+    {
+        int delta = Mathf.Abs(Mathf.RoundToInt(Vector3.Distance(origin, playerTrans.position)));
+
+        return delta;
     }
 
 

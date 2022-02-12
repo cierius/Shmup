@@ -40,10 +40,11 @@ public class AIManager : MonoBehaviour
     {
         for(int i = 0; i < enemies.Count; i++)
         {
-            if(enemies[i].state == EnemyAI.AIState.Searching)
+            if(enemies[i].state == EnemyAI.AIState.Searching || enemies[i].state == EnemyAI.AIState.MovingAndSearching)
             {
                 if(!enemies[i].hasPath)
                 {
+                    enemies[i].path.Clear();
                     enemies[i].SetPath(FindPath(enemies[i].GetTransform(), playerTrans));
                 }
             }
@@ -96,13 +97,13 @@ public class AIManager : MonoBehaviour
         openNodes.Add(startNode);
 
         // While there are still nodes that need to be checked
-        while(openNodes.Count > 0)
+        while (openNodes.Count > 0)
         {
             Node currentNode = openNodes[0];
-            for(int i = 1; i < openNodes.Count; i++) // index starts at 1 since we already know the first node is the start
+            for (int i = 1; i < openNodes.Count; i++) // index starts at 1 since we already know the first node is the start
             {
                 // If the total cost is less or the heuritical distance is shorter then we check that node
-                if(openNodes[i].fCost < currentNode.fCost || openNodes[i].fCost == currentNode.fCost && openNodes[i].hCost < currentNode.hCost)
+                if (openNodes[i].fCost < currentNode.fCost || openNodes[i].fCost == currentNode.fCost && openNodes[i].hCost < currentNode.hCost)
                 {
                     currentNode = openNodes[i];
                 }
@@ -111,35 +112,44 @@ public class AIManager : MonoBehaviour
             openNodes.Remove(currentNode);
             closedNodes.Add(currentNode);
 
-            if(currentNode == targetNode)
+            if (currentNode == targetNode)
             {
                 RetracePath(startNode, targetNode);
                 return pathVecs;
             }
 
-            foreach (Node neighbor in FindNeighbors(currentNode))
+            List<Node> neighbors = new List<Node>();
+            if (currentNode != null)
+            { 
+                neighbors = FindNeighbors(currentNode);
+            }
+
+            if (neighbors.Count > 0)
             {
-                if (closedNodes.Contains(neighbor) || neighbor == null)
+                foreach (Node neighbor in neighbors)
                 {
-                    continue;
-                }
-
-                int newMovementCostToNeighbor = currentNode.gCost + NodeDistance(currentNode, neighbor);
-                if (newMovementCostToNeighbor < neighbor.gCost || !openNodes.Contains(neighbor))
-                {
-                    neighbor.gCost = newMovementCostToNeighbor;
-                    neighbor.hCost = NodeDistance(neighbor, targetNode);
-                    neighbor.parentNode = currentNode;
-
-                    if (!openNodes.Contains(neighbor))
+                    if (closedNodes.Contains(neighbor) || neighbor == null)
                     {
-                        openNodes.Add(neighbor);
+                        continue;
+                    }
+
+                    int newMovementCostToNeighbor = currentNode.gCost + NodeDistance(currentNode, neighbor);
+                    if (newMovementCostToNeighbor < neighbor.gCost || !openNodes.Contains(neighbor))
+                    {
+                        neighbor.gCost = newMovementCostToNeighbor;
+                        neighbor.hCost = NodeDistance(neighbor, targetNode);
+                        neighbor.parentNode = currentNode;
+
+                        if (!openNodes.Contains(neighbor))
+                        {
+                            openNodes.Add(neighbor);
+                        }
                     }
                 }
             }
         }
 
-        return null;
+        return pathVecs;
     }
 
     private void RetracePath(Node start, Node target)
@@ -177,25 +187,25 @@ public class AIManager : MonoBehaviour
 
     private List<Node> FindNeighbors(Node node)
     {
+        print(node);
         List<Node> neighbors = new List<Node>();
-
-        for(int x = -1; x < 2; x++)
+        if (node != null)
         {
-            for(int y = -1; y < 2; y++)
+            for (int x = -1; x < 2; x++)
             {
-                if (x == 0 && y == 0)
-                    continue;
+                for (int y = -1; y < 2; y++)
+                {
+                    if (x == 0 && y == 0)
+                        continue;
 
-                var nodeToAdd = WorldPosToGrid(node.gridX + x, node.gridY + y);
-
-                if (nodeToAdd != null)
-                    neighbors.Add(nodeToAdd);
-                else
-                    continue;
+                    var nodeToAdd = WorldPosToGrid(node.gridX + x, node.gridY + y);
+                    if (nodeToAdd != null)
+                        neighbors.Add(nodeToAdd);
+                    else
+                        continue;
+                }
             }
         }
-
-
         return neighbors;
     }
 
