@@ -21,24 +21,29 @@ public class EnemyAI : MonoBehaviour
     
     public bool invuln = false;
     public int health = 100;
+    public int damage = 2;
 
     public List<Vector3> path = new List<Vector3>();
     private int currNode = 0;
     private float nodeTimeOut = 2.0f; // Time until AI re-pathfinds; may be stuck. THIS IS A QUICK FIX.
     private float nodeTimer = 0;
 
-    private int distToPlayer;
+    private int distToPlayer = 0;
     [SerializeField] private int maxRangeSearch = 5; // Default is 10
     private int minRangeSearch = 2;
-    private int rangeToAttack;
+    private float attackRange = 3f;
+    private Vector2 playerAttackOriginPos = Vector2.zero;
     private Vector2 playerOrigin = Vector2.zero;
+    private LayerMask playerMask;
 
     private bool inRange = false;
     public bool hasPath = false;
 
     private Transform playerTrans;
+    private CharController playerScript;
     private Transform trans;
     private Rigidbody2D rb;
+    private LineRenderer laser;
 
 
     private void Awake()
@@ -46,13 +51,16 @@ public class EnemyAI : MonoBehaviour
         playerTrans = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
         trans = GetComponent<Transform>();
         rb = GetComponent<Rigidbody2D>();
+        laser = GetComponent<LineRenderer>();
         Physics2D.IgnoreLayerCollision(6, 6, true); //Enemies will ignore other enemies collision - Kinda looks weird but works for now
+        playerMask = LayerMask.GetMask("Player");
+        playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<CharController>();
     }
 
 
     private void OnDestroy()
     {
-        trans.parent.GetComponent<AIManager>().RefreshEnemyList();
+        GameObject.Find("AIManager").GetComponent<AIManager>().RefreshEnemyList();
     }
 
 
@@ -98,6 +106,7 @@ public class EnemyAI : MonoBehaviour
                 else
                 {
                     state = AIState.Idle;
+                    hasPath = false;
                 }
             }
             else if(state == AIState.Moving || state == AIState.MovingAndSearching && !hasPath)
@@ -110,7 +119,7 @@ public class EnemyAI : MonoBehaviour
             }
             else if(state == AIState.Attacking)
             {
-                print("Attacking!");
+                Attack(playerAttackOriginPos);
             }
         }
         else
@@ -128,9 +137,12 @@ public class EnemyAI : MonoBehaviour
     {
         if(path.Count < 1) state = AIState.Idle;
 
-        if(inRange)
+        if(CheckInAttackRange(playerTrans))
         {
             state = AIState.Attacking;
+            hasPath = false;
+            currNode = 0;
+            path.Clear();
         }
         else if(hasPath)
         {
@@ -181,9 +193,60 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    private void Attack()
-    {
 
+    private bool CheckInAttackRange(Transform targetPos)
+    {
+        float dist = Mathf.Abs(Vector3.Distance(new Vector3(trans.position.x, trans.position.y, 0), new Vector3(targetPos.position.x, targetPos.position.y, 0)));
+        playerAttackOriginPos = targetPos.position;
+        if (dist <= attackRange)
+        {
+            hasPath = false;
+            return true;
+        }
+
+
+        return false;
+    }
+
+
+    float windUpTimer = 0;
+    float attackDurTimer = 0;
+    float attackDur = .25f;
+    private void Attack(Vector2 target)
+    {
+        windUpTimer += Time.deltaTime;
+
+        if (windUpTimer > 0.5f)
+        {
+            laser.SetPosition(0, new Vector3(trans.position.x, trans.position.y + .35f, trans.position.z - 1));
+            laser.SetPosition(1, new Vector3(trans.position.x, trans.position.y + .25f, trans.position.z - 1));
+            laser.enabled = true;
+
+
+            if (attackDurTimer <= attackDur)
+            {
+                attackDurTimer += Time.deltaTime;
+
+                Vector2 laserLerp = Vector2.Lerp(target, playerTrans.position, .65f);
+                laser.SetPosition(1, laserLerp);
+
+                RaycastHit2D hit = Physics2D.Linecast(trans.position, laserLerp, playerMask);
+                if (hit.collider != null)
+                {
+                    playerScript.ReceiveDamage(damage);
+                }
+            }
+            else 
+            {
+                windUpTimer = 0;
+                attackDurTimer = 0;
+
+                laser.enabled = false;
+
+                if (!CheckInAttackRange(playerTrans))
+                    state = AIState.Idle;
+            }
+        }
     }
 
 

@@ -72,7 +72,6 @@ public class AIManager : MonoBehaviour
         foreach (GameObject e in GameObject.FindGameObjectsWithTag("Enemy"))
         {
             enemyList.Add(e.GetComponent<EnemyAI>());
-            e.transform.parent = this.transform;
         }
 
         enemyList.Reverse();

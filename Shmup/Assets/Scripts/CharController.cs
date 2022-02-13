@@ -4,8 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class CharController : MonoBehaviour
-{
-    
+{ 
     private Stats stats;
 
     private Vector2 lastMoveDir = Vector2.zero;
@@ -60,6 +59,7 @@ public class CharController : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
         laserLineRenderer = laser.GetComponent<LineRenderer>();
         stats = new Stats();
+        stats.healthTotal = stats.healthBase + stats.healthAdditive;
     }
 
 
@@ -216,6 +216,12 @@ public class CharController : MonoBehaviour
             rb.AddForce(lastMoveDir * rollAmount, ForceMode2D.Impulse);
         }
     }
+
+    public void ReceiveDamage(int damage)
+    {
+        stats.healthTotal -= damage;
+        print(stats.healthTotal);
+    }
 }
 
 
@@ -228,6 +234,7 @@ public class Stats
 
     public int healthBase = 100;
     public int healthAdditive = 0;
+    public int healthTotal;
 
     public List<Weapon> weapons = new List<Weapon>();
     public Weapon weaponEquipped;
