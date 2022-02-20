@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class CharController : MonoBehaviour
 { 
@@ -28,6 +29,7 @@ public class CharController : MonoBehaviour
     private Transform trans;
     private PlayerInputActions playerInputActions; // the script that contains the input information
     private PlayerInput playerInput;
+    private Slider healthBar;
 
     // Refs of laser
     [SerializeField] private GameObject laser;
@@ -57,9 +59,14 @@ public class CharController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         trans = GetComponent<Transform>();
         playerInput = GetComponent<PlayerInput>();
+        healthBar = GameObject.Find("HUD/Canvas/HealthBar").GetComponent<Slider>();
         laserLineRenderer = laser.GetComponent<LineRenderer>();
         stats = new Stats();
         stats.healthTotal = stats.healthBase + stats.healthAdditive;
+        stats.healthCurrent = stats.healthTotal;
+
+        healthBar.maxValue = stats.healthTotal;
+        healthBar.value = stats.healthTotal;
     }
 
 
@@ -115,14 +122,6 @@ public class CharController : MonoBehaviour
             Vector3 laserEnd = new Vector3((playerInputActions.Player.FireDir.ReadValue<Vector2>().x*20f) + trans.position.x, (playerInputActions.Player.FireDir.ReadValue<Vector2>().y*20f) + trans.position.y);
             laserLineRenderer.SetPositions(new Vector3[] { trans.position, laserEnd });
         }
-        /*else
-        {
-            laserPos[0] = trans.position;
-            laserPos[1] = Input.mousePosition - new Vector3(Camera.main.scaledPixelWidth / 2, Camera.main.scaledPixelHeight / 2, 0);
-            float dist = Vector3.Distance(laserPos[0], laserPos[1]);
-
-            laserLineRenderer.SetPositions(laserPos);
-        }*/
     }
 
 
@@ -219,8 +218,14 @@ public class CharController : MonoBehaviour
 
     public void ReceiveDamage(int damage)
     {
-        stats.healthTotal -= damage;
-        print(stats.healthTotal);
+        stats.healthCurrent -= damage;
+        healthBar.value = stats.healthCurrent;
+    }
+
+    public void ReceiveHealth(int health)
+    {
+        stats.healthCurrent += health;
+        healthBar.value = stats.healthCurrent;
     }
 }
 
@@ -235,6 +240,7 @@ public class Stats
     public int healthBase = 100;
     public int healthAdditive = 0;
     public int healthTotal;
+    public int healthCurrent;
 
     public List<Weapon> weapons = new List<Weapon>();
     public Weapon weaponEquipped;

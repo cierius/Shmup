@@ -7,6 +7,8 @@ public class EnemyAI : MonoBehaviour
     public bool showPath = false;
     public bool showAttackRadius = false;
 
+    EnemyType e;
+
     public enum AIState
     {
         Idle,
@@ -55,12 +57,6 @@ public class EnemyAI : MonoBehaviour
         Physics2D.IgnoreLayerCollision(6, 6, true); //Enemies will ignore other enemies collision - Kinda looks weird but works for now
         playerMask = LayerMask.GetMask("Player");
         playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<CharController>();
-    }
-
-
-    private void OnDestroy()
-    {
-        GameObject.Find("AIManager").GetComponent<AIManager>().RefreshEnemyList();
     }
 
 

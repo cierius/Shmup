@@ -283,3 +283,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bulletDamage: 10
+  floatingDamageText: {fileID: 3303976486947650803, guid: 8acf5dbeda261f6439bf3b458497918f, type: 3}
