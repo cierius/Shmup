@@ -71,6 +71,15 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ResetLevel"",
+                    ""type"": ""Button"",
+                    ""id"": ""5dcfb92a-26f1-4776-a9a2-377df8e89d9c"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -216,6 +225,45 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""52033e47-81a4-4a03-9c3a-ab4ec6d0ce23"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": ""Hold(duration=2)"",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""ResetLevel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""Menu"",
+            ""id"": ""eab8c172-a1f9-4d97-ae80-20a519b3ff09"",
+            ""actions"": [
+                {
+                    ""name"": ""Controller Navigation"",
+                    ""type"": ""Button"",
+                    ""id"": ""7d8a8f65-36b2-4ab3-8dd6-5a4234449651"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""6f38519a-de84-44de-a440-35174bd6b8a7"",
+                    ""path"": """",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Controller Navigation"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -252,6 +300,10 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
         m_Player_Fire = m_Player.FindAction("Fire", throwIfNotFound: true);
         m_Player_Roll = m_Player.FindAction("Roll", throwIfNotFound: true);
         m_Player_Action = m_Player.FindAction("Action", throwIfNotFound: true);
+        m_Player_ResetLevel = m_Player.FindAction("ResetLevel", throwIfNotFound: true);
+        // Menu
+        m_Menu = asset.FindActionMap("Menu", throwIfNotFound: true);
+        m_Menu_ControllerNavigation = m_Menu.FindAction("Controller Navigation", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -316,6 +368,7 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Fire;
     private readonly InputAction m_Player_Roll;
     private readonly InputAction m_Player_Action;
+    private readonly InputAction m_Player_ResetLevel;
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -325,6 +378,7 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
         public InputAction @Fire => m_Wrapper.m_Player_Fire;
         public InputAction @Roll => m_Wrapper.m_Player_Roll;
         public InputAction @Action => m_Wrapper.m_Player_Action;
+        public InputAction @ResetLevel => m_Wrapper.m_Player_ResetLevel;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -349,6 +403,9 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                 @Action.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnAction;
                 @Action.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnAction;
                 @Action.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnAction;
+                @ResetLevel.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnResetLevel;
+                @ResetLevel.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnResetLevel;
+                @ResetLevel.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnResetLevel;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -368,10 +425,46 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                 @Action.started += instance.OnAction;
                 @Action.performed += instance.OnAction;
                 @Action.canceled += instance.OnAction;
+                @ResetLevel.started += instance.OnResetLevel;
+                @ResetLevel.performed += instance.OnResetLevel;
+                @ResetLevel.canceled += instance.OnResetLevel;
             }
         }
     }
     public PlayerActions @Player => new PlayerActions(this);
+
+    // Menu
+    private readonly InputActionMap m_Menu;
+    private IMenuActions m_MenuActionsCallbackInterface;
+    private readonly InputAction m_Menu_ControllerNavigation;
+    public struct MenuActions
+    {
+        private @PlayerInputActions m_Wrapper;
+        public MenuActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
+        public InputAction @ControllerNavigation => m_Wrapper.m_Menu_ControllerNavigation;
+        public InputActionMap Get() { return m_Wrapper.m_Menu; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(MenuActions set) { return set.Get(); }
+        public void SetCallbacks(IMenuActions instance)
+        {
+            if (m_Wrapper.m_MenuActionsCallbackInterface != null)
+            {
+                @ControllerNavigation.started -= m_Wrapper.m_MenuActionsCallbackInterface.OnControllerNavigation;
+                @ControllerNavigation.performed -= m_Wrapper.m_MenuActionsCallbackInterface.OnControllerNavigation;
+                @ControllerNavigation.canceled -= m_Wrapper.m_MenuActionsCallbackInterface.OnControllerNavigation;
+            }
+            m_Wrapper.m_MenuActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @ControllerNavigation.started += instance.OnControllerNavigation;
+                @ControllerNavigation.performed += instance.OnControllerNavigation;
+                @ControllerNavigation.canceled += instance.OnControllerNavigation;
+            }
+        }
+    }
+    public MenuActions @Menu => new MenuActions(this);
     private int m_KeyboardSchemeIndex = -1;
     public InputControlScheme KeyboardScheme
     {
@@ -397,5 +490,10 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
         void OnFire(InputAction.CallbackContext context);
         void OnRoll(InputAction.CallbackContext context);
         void OnAction(InputAction.CallbackContext context);
+        void OnResetLevel(InputAction.CallbackContext context);
+    }
+    public interface IMenuActions
+    {
+        void OnControllerNavigation(InputAction.CallbackContext context);
     }
 }

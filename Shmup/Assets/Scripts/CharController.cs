@@ -206,6 +206,15 @@ public class CharController : MonoBehaviour
     }
 
 
+    public void ResetLevel(InputAction.CallbackContext context)
+    {
+        if(context.performed == true)
+        {
+            Singleton.Instance.ResetLevel();
+        }
+    }
+
+
     public void Roll(InputAction.CallbackContext context)
     {
         if(context.started == true && !isRolling && !rollOnCooldown)
