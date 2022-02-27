@@ -65,6 +65,9 @@
     <Compile Include="Assets\Scripts\Enemy Scripts\EnemyAI.cs" />
     <Compile Include="Assets\Scripts\CharController.cs" />
     <Compile Include="Assets\Scripts\MainMenu.cs" />
+    <Compile Include="Assets\Scripts\ObjectiveManager.cs" />
+    <Compile Include="Assets\Scripts\Objective.cs" />
+    <Compile Include="Assets\Scripts\ObjectiveSlide.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

@@ -58,6 +58,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ObjectiveMenu",
+                    "type": "Button",
+                    "id": "4d70b133-77d2-486f-90b9-f133ee0c2225",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -212,6 +221,17 @@
                     "processors": "",
                     "groups": "Keyboard",
                     "action": "ResetLevel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f0e23aac-f1fc-4dc9-98e8-1e38e36b3ce2",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard",
+                    "action": "ObjectiveMenu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -46,6 +46,7 @@ public class EnemyAI : MonoBehaviour
     private Transform trans;
     private Rigidbody2D rb;
     private LineRenderer laser;
+    private ObjectiveManager objectiveManager;
 
 
     private void Awake()
@@ -57,6 +58,7 @@ public class EnemyAI : MonoBehaviour
         Physics2D.IgnoreLayerCollision(6, 6, true); //Enemies will ignore other enemies collision - Kinda looks weird but works for now
         playerMask = LayerMask.GetMask("Player");
         playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<CharController>();
+        objectiveManager = GameObject.Find("ObjectiveManager").GetComponent<ObjectiveManager>();
     }
 
 
@@ -78,6 +80,11 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
+
+    private void OnDestroy()
+    {
+        objectiveManager.Elimination();
+    }
 
     void FixedUpdate()
     {

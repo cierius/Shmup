@@ -80,6 +80,15 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ObjectiveMenu"",
+                    ""type"": ""Button"",
+                    ""id"": ""4d70b133-77d2-486f-90b9-f133ee0c2225"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -236,6 +245,17 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                     ""action"": ""ResetLevel"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f0e23aac-f1fc-4dc9-98e8-1e38e36b3ce2"",
+                    ""path"": ""<Keyboard>/tab"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard"",
+                    ""action"": ""ObjectiveMenu"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -301,6 +321,7 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
         m_Player_Roll = m_Player.FindAction("Roll", throwIfNotFound: true);
         m_Player_Action = m_Player.FindAction("Action", throwIfNotFound: true);
         m_Player_ResetLevel = m_Player.FindAction("ResetLevel", throwIfNotFound: true);
+        m_Player_ObjectiveMenu = m_Player.FindAction("ObjectiveMenu", throwIfNotFound: true);
         // Menu
         m_Menu = asset.FindActionMap("Menu", throwIfNotFound: true);
         m_Menu_ControllerNavigation = m_Menu.FindAction("Controller Navigation", throwIfNotFound: true);
@@ -369,6 +390,7 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Roll;
     private readonly InputAction m_Player_Action;
     private readonly InputAction m_Player_ResetLevel;
+    private readonly InputAction m_Player_ObjectiveMenu;
     public struct PlayerActions
     {
         private @PlayerInputActions m_Wrapper;
@@ -379,6 +401,7 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
         public InputAction @Roll => m_Wrapper.m_Player_Roll;
         public InputAction @Action => m_Wrapper.m_Player_Action;
         public InputAction @ResetLevel => m_Wrapper.m_Player_ResetLevel;
+        public InputAction @ObjectiveMenu => m_Wrapper.m_Player_ObjectiveMenu;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -406,6 +429,9 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                 @ResetLevel.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnResetLevel;
                 @ResetLevel.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnResetLevel;
                 @ResetLevel.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnResetLevel;
+                @ObjectiveMenu.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnObjectiveMenu;
+                @ObjectiveMenu.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnObjectiveMenu;
+                @ObjectiveMenu.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnObjectiveMenu;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -428,6 +454,9 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
                 @ResetLevel.started += instance.OnResetLevel;
                 @ResetLevel.performed += instance.OnResetLevel;
                 @ResetLevel.canceled += instance.OnResetLevel;
+                @ObjectiveMenu.started += instance.OnObjectiveMenu;
+                @ObjectiveMenu.performed += instance.OnObjectiveMenu;
+                @ObjectiveMenu.canceled += instance.OnObjectiveMenu;
             }
         }
     }
@@ -491,6 +520,7 @@ public partial class @PlayerInputActions : IInputActionCollection2, IDisposable
         void OnRoll(InputAction.CallbackContext context);
         void OnAction(InputAction.CallbackContext context);
         void OnResetLevel(InputAction.CallbackContext context);
+        void OnObjectiveMenu(InputAction.CallbackContext context);
     }
     public interface IMenuActions
     {
